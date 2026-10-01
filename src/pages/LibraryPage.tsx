@@ -6,6 +6,9 @@ import { BookmarkItem, HistoryItem } from '../types/comic';
 import {
   getBookmarks,
   removeBookmark,
+  toggleBookmark,
+  restoreHistoryItem,
+  restoreContinueReading,
   getHistory,
   deleteHistoryItem,
   clearHistory,
@@ -44,13 +47,21 @@ export function LibraryPage() {
     removeBookmark(item.comicSlug, item.src);
     loadData();
     showToast('Bookmark dihapus', 'Urungkan', () => {
+      const { addedAt, ...rest } = item;
+      toggleBookmark(rest); // tambahkan kembali
       loadData();
-    });
+    }, 5000);
   };
 
   const handleDeleteHistory = (item: HistoryItem) => {
+    const cont = getContinueReading(item.comicSlug, item.src);
     deleteHistoryItem(item.comicSlug, item.src);
     loadData();
+    showToast('Dihapus dari riwayat', 'Urungkan', () => {
+      restoreHistoryItem(item);
+      if (cont) restoreContinueReading(cont);
+      loadData();
+    }, 5000);
   };
 
   const handleClearAllHistory = () => {

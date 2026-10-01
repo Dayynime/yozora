@@ -140,6 +140,7 @@ export function deleteHistoryItem(comicSlug: string, src: ComicSource) {
   try {
     const history = getHistory().filter(h => !(h.comicSlug === comicSlug && h.src === src));
     localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+    removeContinueReading(comicSlug, src);
     window.dispatchEvent(new Event('yozora_history_change'));
   } catch {
     // ignore
@@ -149,6 +150,7 @@ export function deleteHistoryItem(comicSlug: string, src: ComicSource) {
 export function clearHistory() {
   try {
     localStorage.removeItem(HISTORY_KEY);
+    clearContinueReading();
     window.dispatchEvent(new Event('yozora_history_change'));
   } catch {
     // ignore
@@ -202,6 +204,54 @@ export function saveContinueReading(data: Omit<ContinueReadingData, 'updatedAt'>
       updatedAt: Date.now(),
     };
     localStorage.setItem(CONTINUE_KEY, JSON.stringify(map));
+    window.dispatchEvent(new Event('yozora_continue_change'));
+  } catch {
+    // ignore
+  }
+}
+
+export function removeContinueReading(comicSlug: string, src: ComicSource) {
+  try {
+    const raw = localStorage.getItem(CONTINUE_KEY);
+    if (!raw) return;
+    const map: Record<string, ContinueReadingData> = JSON.parse(raw);
+    delete map[`${src}:${comicSlug}`];
+    localStorage.setItem(CONTINUE_KEY, JSON.stringify(map));
+    window.dispatchEvent(new Event('yozora_continue_change'));
+  } catch {
+    // ignore
+  }
+}
+
+export function clearContinueReading() {
+  try {
+    localStorage.removeItem(CONTINUE_KEY);
+    window.dispatchEvent(new Event('yozora_continue_change'));
+  } catch {
+    // ignore
+  }
+}
+
+// Dipakai untuk "Urungkan": kembalikan item persis seperti sebelum dihapus
+export function restoreContinueReading(data: ContinueReadingData) {
+  try {
+    const raw = localStorage.getItem(CONTINUE_KEY);
+    const map: Record<string, ContinueReadingData> = raw ? JSON.parse(raw) : {};
+    map[`${data.src}:${data.comicSlug}`] = data;
+    localStorage.setItem(CONTINUE_KEY, JSON.stringify(map));
+    window.dispatchEvent(new Event('yozora_continue_change'));
+  } catch {
+    // ignore
+  }
+}
+
+export function restoreHistoryItem(entry: HistoryItem) {
+  try {
+    let history = getHistory().filter(h => !(h.comicSlug === entry.comicSlug && h.src === entry.src));
+    history.push(entry);
+    history.sort((a, b) => b.readAt - a.readAt);
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, 100)));
+    window.dispatchEvent(new Event('yozora_history_change'));
   } catch {
     // ignore
   }

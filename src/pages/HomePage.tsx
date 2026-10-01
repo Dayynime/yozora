@@ -1,11 +1,20 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
-import { BookOpen, ChevronRight } from 'lucide-react';
+import { BookOpen, ChevronRight, X } from 'lucide-react';
 import { ComicSource, ComicCard as ComicCardType } from '../types/comic';
 import { getUnifiedHome } from '../lib/adapters';
-import { getAllContinueReading } from '../lib/storage';
+import {
+  getAllContinueReading,
+  removeContinueReading,
+  restoreContinueReading,
+  getHistory,
+  restoreHistoryItem,
+  deleteHistoryItem,
+  ContinueReadingData,
+} from '../lib/storage';
+import { useToast } from '../context/ToastContext';
 import { getProxiedImageUrl } from '../lib/api';
 import { HeroCarousel } from '../components/HeroCarousel';
 import { HorizontalSnapRow } from '../components/HorizontalSnapRow';
@@ -29,7 +38,43 @@ const CATEGORY_CHIPS = [
 
 export function HomePage({ source }: HomePageProps) {
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const continueList = getAllContinueReading().slice(0, 3);
+  const { showToast } = useToast();
+  const [continueList, setContinueList] = useState<ContinueReadingData[]>(() =>
+    getAllContinueReading().slice(0, 3)
+  );
+
+  const loadContinue = useCallback(() => {
+    setContinueList(getAllContinueReading().slice(0, 3));
+  }, []);
+
+  // Perbarui otomatis saat data lanjut baca / riwayat berubah
+  useEffect(() => {
+    window.addEventListener('yozora_continue_change', loadContinue);
+    window.addEventListener('yozora_history_change', loadContinue);
+    window.addEventListener('storage', loadContinue);
+    return () => {
+      window.removeEventListener('yozora_continue_change', loadContinue);
+      window.removeEventListener('yozora_history_change', loadContinue);
+      window.removeEventListener('storage', loadContinue);
+    };
+  }, [loadContinue]);
+
+  const handleRemoveContinue = (item: ContinueReadingData) => {
+    const historyEntry = getHistory().find(
+      (h) => h.comicSlug === item.comicSlug && h.src === item.src
+    );
+    deleteHistoryItem(item.comicSlug, item.src); // hapus riwayat + lanjut baca
+    removeContinueReading(item.comicSlug, item.src);
+    showToast(
+      'Dihapus dari Lanjut baca',
+      'Urungkan',
+      () => {
+        restoreContinueReading(item);
+        if (historyEntry) restoreHistoryItem(historyEntry);
+      },
+      5000
+    );
+  };
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['home', source],
@@ -165,12 +210,22 @@ export function HomePage({ source }: HomePageProps) {
                           </div>
                         </div>
 
-                        <Link
-                          to={`/${item.src}/chapter/${item.comicSlug}/${encodeURIComponent(item.chapterSlug)}`}
-                          className="shrink-0 px-2.5 py-1.5 bg-accent hover:bg-accent-hover text-white text-xs font-mono font-medium rounded-sm transition-colors active:scale-95"
-                        >
-                          Lanjut
-                        </Link>
+                        <div className="shrink-0 flex items-center gap-1">
+                          <Link
+                            to={`/${item.src}/chapter/${item.comicSlug}/${encodeURIComponent(item.chapterSlug)}`}
+                            className="px-2.5 py-1.5 bg-accent hover:bg-accent-hover text-white text-xs font-mono font-medium rounded-sm transition-colors active:scale-95"
+                          >
+                            Lanjut
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveContinue(item)}
+                            aria-label={`Hapus ${item.comicTitle} dari Lanjut baca`}
+                            className="w-9 h-9 flex items-center justify-center text-muted hover:text-main transition-colors"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
