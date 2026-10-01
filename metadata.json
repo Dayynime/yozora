@@ -1,0 +1,6 @@
+{
+  "name": "Yozora",
+  "description": "Baca komik online, bahasa Indonesia.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

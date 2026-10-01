@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+@theme {
+  --color-base: var(--bg-base);
+  --color-surface: var(--bg-surface);
+  --color-surface-hover: var(--bg-surface-hover);
+  --color-line: var(--border-color);
+  --color-line-subtle: var(--border-subtle);
+  --color-main: var(--text-main);
+  --color-muted: var(--text-muted);
+  --color-subtle: var(--text-subtle);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+
+  --font-serif: 'Shippori Mincho', serif;
+  --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 4px;
+}
+
+:root {
+  --bg-base: #121212;
+  --bg-surface: #1a1a1a;
+  --bg-surface-hover: #222222;
+  --border-color: #2a2a2a;
+  --border-subtle: #1e1e1e;
+  --text-main: #e8e6e3;
+  --text-muted: #8a8a8a;
+  --text-subtle: #5a5a5a;
+  --accent: #d9432b;
+  --accent-hover: #bf351f;
+  color-scheme: dark;
+}
+
+html.light {
+  --bg-base: #f5f2ec;
+  --bg-surface: #ebe6dc;
+  --bg-surface-hover: #e2ddd3;
+  --border-color: #d9d4c9;
+  --border-subtle: #e4dfd4;
+  --text-main: #1c1c1c;
+  --text-muted: #66625a;
+  --text-subtle: #99948a;
+  --accent: #d9432b;
+  --accent-hover: #bf351f;
+  color-scheme: light;
+}
+
+body {
+  background-color: var(--bg-base);
+  color: var(--text-main);
+  font-family: 'IBM Plex Sans', sans-serif;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Strict motion transitions */
+*, *::before, *::after {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  transition-duration: 140ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* Tabular figures for numbers */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Custom scrollbar clean & minimal */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-base);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-subtle);
+}
+
+/* Image anti-hotlink protection helper */
+img {
+  content-visibility: auto;
+}
